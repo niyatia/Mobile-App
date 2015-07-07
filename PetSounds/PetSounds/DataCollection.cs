@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Data.Xml.Dom;
 
-namespace PetSounds
+namespace PointOfInterest
 {
     class DataCollection
     {

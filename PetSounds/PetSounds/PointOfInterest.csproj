@@ -7,7 +7,7 @@
     <ProjectGuid>{1849D7D8-EB2A-4274-8A9E-F76347EEE596}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PetSounds</RootNamespace>
+    <RootNamespace>PointOfInterest</RootNamespace>
     <AssemblyName>PetSounds</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformVersion>8.1</TargetPlatformVersion>

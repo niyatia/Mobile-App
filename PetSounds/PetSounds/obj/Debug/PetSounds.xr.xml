@@ -29,11 +29,6 @@
       <RootProperty Name="Margin" />
       <RootEvent Name="Click" />
     </RootType>
-    <RootType FullName="Windows.UI.Xaml.Controls.MediaElement">
-      <RootProperty Name="Source" />
-      <RootProperty Name="Volume" />
-      <RootProperty Name="AutoPlay" />
-    </RootType>
-    <RootType FullName="PetSounds.MainPage" />
+    <RootType FullName="PointOfInterest.MainPage" />
   </Roots.RootTypes>
 </Roots>

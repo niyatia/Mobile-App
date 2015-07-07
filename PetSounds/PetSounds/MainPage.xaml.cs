@@ -27,7 +27,7 @@ using Newtonsoft.Json;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
 
 
-namespace PetSounds
+namespace PointOfInterest
 {
     public class Paramss
     {
