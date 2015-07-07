@@ -29,30 +29,29 @@ using Newtonsoft.Json;
 
 namespace PointOfInterest
 {
-    public class Paramss
+    public class MetaData
     {
-         [DataMember(Name = "entityID", EmitDefaultValue = false)]
+        [DataMember(Name = "uri", EmitDefaultValue = false)]
+        public string uri { get; set; }
+        [DataMember(Name = "entityID", EmitDefaultValue = false)]
         public string EntityID { get; set; }
-         [DataMember(Name = "displayName", EmitDefaultValue = false)]
+        [DataMember(Name = "displayName", EmitDefaultValue = false)]
         public string DisplayName { get; set; }
-         [DataMember(Name = "addressLine", EmitDefaultValue = false)]
+        [DataMember(Name = "addressLine", EmitDefaultValue = false)]
         public string AddressLine { get; set; }
-         [DataMember(Name = "postalCode", EmitDefaultValue = false)]
+        [DataMember(Name = "postalCode", EmitDefaultValue = false)]
         public string PostalCode { get; set; }
-         [DataMember(Name = "phone", EmitDefaultValue = false)]
+        [DataMember(Name = "phone", EmitDefaultValue = false)]
         public string Phone { get; set; }
-         [DataMember(Name = "__distance", EmitDefaultValue = false)]
+        [DataMember(Name = "__distance", EmitDefaultValue = false)]
         public string __Distance { get; set; }
     }
 
     [DataContract]
-    public class ResourceSet
+    public class Results
     {
-        [DataMember(Name = "estimatedTotal", EmitDefaultValue = false)]
-        public long EstimatedTotal { get; set; }
-
-        [DataMember(Name = "resources", EmitDefaultValue = false)]
-        public Paramss[] Resources { get; set; }
+        [DataMember(Name = "metadata", EmitDefaultValue = false)]
+        public MetaData[] metadata { get; set; }
     }
 
     [DataContract]
@@ -61,33 +60,15 @@ namespace PointOfInterest
         [DataMember(Name = "copyright", EmitDefaultValue = false)]
         public string Copyright { get; set; }
 
-        [DataMember(Name = "brandLogoUri", EmitDefaultValue = false)]
-        public string BrandLogoUri { get; set; }
-
-        [DataMember(Name = "statusCode", EmitDefaultValue = false)]
-        public int StatusCode { get; set; }
-
-        [DataMember(Name = "statusDescription", EmitDefaultValue = false)]
-        public string StatusDescription { get; set; }
-
-        [DataMember(Name = "authenticationResultCode", EmitDefaultValue = false)]
-        public string AuthenticationResultCode { get; set; }
-
-        [DataMember(Name = "errorDetails", EmitDefaultValue = false)]
-        public string[] errorDetails { get; set; }
-
-        [DataMember(Name = "traceId", EmitDefaultValue = false)]
-        public string TraceId { get; set; }
-
-        [DataMember(Name = "resourceSets", EmitDefaultValue = false)]
-        public Paramss[] ResourceSets { get; set; }
+        [DataMember(Name = "results", EmitDefaultValue = false)]
+        public Results[] results { get; set; }
     }
 
     /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// An empty page that can be used on it own or navigated to within a Frame.
     /// </summary>
     public sealed partial class MainPage : Page
-    {        
+    {
         public MainPage()
         {
             this.InitializeComponent();
@@ -105,7 +86,7 @@ namespace PointOfInterest
             var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
             MessageDialog messageDialog =
-                new MessageDialog("This app accesses your phone's location. Is that ok?",
+                new MessageDialog("This app access your phone's location. Is that ok?",
                 "Location");
             // Add commands and set their command ids 
             messageDialog.Commands.Add(new UICommand("Allow", null, 1));
@@ -124,7 +105,7 @@ namespace PointOfInterest
             else
             {
                 localSettings.Values["LocationConsent"] = false;
-            }           
+            }
         }
 
         private async void OneShotLocation_Click(object sender, RoutedEventArgs e)
@@ -151,29 +132,32 @@ namespace PointOfInterest
                 latitude = geoposition.Coordinate.Latitude.ToString("0.00");
                 longitude = geoposition.Coordinate.Longitude.ToString("0.00");
                 double Radius = 3; // km
-                
+
                 string accessID = "f22876ec257b474b82fe2ffcb8393150";
                 string dataEntityName = "NavteqNA";
                 string dataSource = "NavteqPOIs";
-          
 
-                string requestUrl = string.Format("http://spatial.virtualearth.net/REST/v1/data/{0}/{1}/{2}?spatialFilter=nearby({3},{4},{5})&$filter=EntityTypeID eq '5800'&$select=EntityID,DisplayName,AddressLine,PostalCode,Phone,__Distance&$format=json&$top=10&key={6}",accessID, dataEntityName, dataSource, latitude, longitude, Radius, bingMapsKey);
-              
-                string  json = await getData(requestUrl);
+
+                string requestUrl = string.Format("http://spatial.virtualearth.net/REST/v1/data/{0}/{1}/{2}?spatialFilter=nearby({3},{4},{5})&$filter=EntityTypeID eq '5800'&$select=EntityID,DisplayName,AddressLine,PostalCode,Phone,__Distance&$format=json&$top=10&key={6}", accessID, dataEntityName, dataSource, latitude, longitude, Radius, bingMapsKey);
+
+                string json = await getData(requestUrl);
                 Response childlist = new Response();
-              
+
                 MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(json));
                 DataContractJsonSerializer ser = new DataContractJsonSerializer(childlist.GetType());
                 childlist = ser.ReadObject(ms) as Response;
                 string teststring = "";
-                foreach (var d in childlist.ResourceSets)
+                foreach (var d in childlist.results)
                 {
-                    teststring = teststring + "" + d.DisplayName + "\n" + "\n" + "\n";
+                    foreach (var s in d.metadata)
+                    {
+                        teststring = teststring + "" + s.DisplayName + "\t" + s.EntityID + "\n";
+                    }
                 }
-              
-                ms.Dispose(); 
 
-               // results = json.ToString();
+                ms.Dispose();
+
+                // results = json.ToString();
                 LatitudeTextBlock.Text = teststring;
             }
             catch (Exception ex)
@@ -196,19 +180,14 @@ namespace PointOfInterest
             {
                 HttpClient client = new HttpClient();
                 var response = await client.GetAsync(requestUrl);
-                var stream = await response.Content.ReadAsStreamAsync();
-
-                using (var streamReader = new StreamReader(stream))
-                using (var jsonReader = new JsonTextReader(streamReader))
-                {
-                    return jsonReader.ToString();
-                }               
+                string responseBodyAsText = await response.Content.ReadAsStringAsync();
+                return responseBodyAsText;
 
             }
             catch (Exception e)
             {
-                return null;              
+                return null;
             }
-        }      
+        }
     }
 }
